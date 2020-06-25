@@ -1,11 +1,16 @@
 package it.polito.tdp.seriea;
 
 import java.net.URL;
+import java.util.List;
 import java.util.ResourceBundle;
 
 import it.polito.tdp.seriea.model.Model;
+import it.polito.tdp.seriea.model.Season;
+import it.polito.tdp.seriea.model.Team;
+import it.polito.tdp.seriea.model.TeamPunteggio;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.control.Button;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.TextArea;
 
@@ -20,22 +25,47 @@ public class FXMLController {
     private URL location;
 
     @FXML
-    private ChoiceBox<?> boxSeason;
+    private Button btnCarica;
 
     @FXML
-    private ChoiceBox<?> boxTeam;
+    private Button btnDomino;
+    @FXML
+    private ChoiceBox<Season> boxSeason;
+
+    @FXML
+    private ChoiceBox<Team> boxTeam;
 
     @FXML
     private TextArea txtResult;
 
     @FXML
     void handleCarica(ActionEvent event) {
-
+    	txtResult.clear();
+    	
+    	Season stagione = boxSeason.getValue();
+    	
+    	if(stagione == null) {
+    		txtResult.appendText("ERRORE: devi selezionare una stagione!");
+    		return;
+    	}
+    	
+    	model.creaGrafo(stagione);
+    	
+    	boxTeam.getItems().clear();
+    	boxTeam.getItems().addAll(model.getTeams());
+    	btnDomino.setDisable(false);
+    	
+    	List<TeamPunteggio> classifica = model.calcolaClassifica();
+    	txtResult.appendText("CLASSIFICA CAMPIONATO DEL "+stagione.getSeason()+"\n");
+    	for(TeamPunteggio tp : classifica) {
+    		txtResult.appendText(tp.getTeam()+" ("+tp.getPunteggio()+")"+"\n");
+    	}
     }
 
     @FXML
     void handleDomino(ActionEvent event) {
-
+    	txtResult.clear();
+    	
     }
 
     @FXML
@@ -43,10 +73,16 @@ public class FXMLController {
         assert boxSeason != null : "fx:id=\"boxSeason\" was not injected: check your FXML file 'SerieA.fxml'.";
         assert boxTeam != null : "fx:id=\"boxTeam\" was not injected: check your FXML file 'SerieA.fxml'.";
         assert txtResult != null : "fx:id=\"txtResult\" was not injected: check your FXML file 'SerieA.fxml'.";
+        assert btnCarica != null : "fx:id=\"btnCarica\" was not injected: check your FXML file 'Scene.fxml'.";
+        assert btnDomino != null : "fx:id=\"btnDomino\" was not injected: check your FXML file 'Scene.fxml'.";
 
     }
 
 	public void setModel(Model model) {
 		this.model = model;
+		
+		boxSeason.getItems().addAll(model.listSeasons());
+		
+		btnDomino.setDisable(true);
 	}
 }
